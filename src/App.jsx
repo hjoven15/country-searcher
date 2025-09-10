@@ -1,35 +1,72 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import Swal from "sweetalert2";
+import { Search } from "./components/Search";
+import { Header } from "./components/Header";
+import { CountriesList } from "./countries/CountriesList";
+import { getCountriesByName } from "./actions/getCountriesByName";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [countries, setCountries] = useState(null);
+
+  const handleSearch = async (searchCountry) => {
+    if (!searchCountry || searchCountry.trim() === "") {
+      Swal.fire({
+        icon: "warning",
+        title: "Oops...",
+        text: "Por favor ingresa un nombre de país válido.",
+      });
+      setCountries([]);
+      return;
+    }
+
+    const newCountry = searchCountry.trim().toLowerCase();
+
+    Swal.fire({
+      title: "Buscando...",
+      text: "Por favor espera",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    try {
+      const results = await getCountriesByName(newCountry);
+      setCountries(results);
+
+      Swal.close();
+
+      if (results.length === 0) {
+        Swal.fire({
+          icon: "info",
+          title: "Sin resultados",
+          text: `No se encontraron países con el nombre "${searchCountry}".`,
+        });
+      }
+    } catch (error) {
+      Swal.close();
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message,
+      });
+      setCountries([]);
+    }
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <Header title="CountriesApp" description="Buscador de Países" />
+
+      <Search
+        placeholder="Ingresa el nombre de un país..."
+        onSearch={handleSearch}
+      />
+
+      <CountriesList countries={countries} />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
