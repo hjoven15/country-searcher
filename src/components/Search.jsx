@@ -28,7 +28,7 @@ export const Search = ({ placeholder, onSearch }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="search-container">
+    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "8px" }} className="search-container">
       <input
         type="text"
         placeholder={placeholder}
